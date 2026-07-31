@@ -146,7 +146,7 @@
             tbody.appendChild(fila);
         }
 
-        // NUEVO: Guarda hasta 10 pedidos en el historial
+        // Guarda hasta 10 pedidos en el historial
         function guardarEnHistorial(proveedor, tipoDoc, items) {
             let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
             
@@ -157,16 +157,16 @@
                 items: items
             };
 
-            historial.unshift(nuevoRegistro); // Lo agrega al principio de la lista
+            historial.unshift(nuevoRegistro); 
             
             if (historial.length > 10) {
-                historial.pop(); // Si hay más de 10, borra el más viejo
+                historial.pop(); 
             }
             
             localStorage.setItem('ingesir_historial', JSON.stringify(historial));
         }
 
-        // NUEVO: Abre la ventanita con la lista de pedidos guardados
+        // Abre la ventanita con la lista de pedidos guardados
         function abrirHistorial() {
             let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
             let contenedor = document.getElementById('listaHistorial');
@@ -194,19 +194,18 @@
             modal.show();
         }
 
-        // NUEVO: Pone los datos seleccionados en la pantalla
+        // Pone los datos seleccionados en la pantalla
         function cargarDesdeHistorial(index) {
             let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
             let reg = historial[index];
             
             document.getElementById('inputProveedor').value = reg.proveedor;
-            document.getElementById('cuerpoTabla').innerHTML = ''; // Limpia la tabla
+            document.getElementById('cuerpoTabla').innerHTML = ''; 
             
             reg.items.forEach(item => {
                 agregarFila(item.desc, item.cant);
             });
             
-            // Cierra la ventanita
             bootstrap.Modal.getInstance(document.getElementById('modalHistorial')).hide();
         }
 
@@ -229,7 +228,7 @@
                 return;
             }
 
-            // Llamamos a la nueva función que guarda en el historial múltiple
+            // Llamamos a la función que guarda en el historial
             guardarEnHistorial(proveedor, tipoDoc, itemsParaGuardar);
 
             const datos = {
@@ -252,9 +251,16 @@
                 body: JSON.stringify(datos)
             })
             .then(() => {
-                alert("✅ ¡Éxito!\n\nEl PDF se generó en Drive y el pedido quedó guardado en tu historial local.");
+                alert("✅ ¡Éxito!\n\nEl documento se está generando en Drive y el pedido quedó guardado en tu historial.");
                 btn.innerHTML = "📄 GENERAR DOCUMENTO";
                 btn.disabled = false;
+
+                // --- MAGIA: LIMPIEZA AUTOMÁTICA DE LA PANTALLA ---
+                document.getElementById('inputProveedor').value = ''; 
+                document.getElementById('cuerpoTabla').innerHTML = ''; 
+                document.getElementById('inputDesc').value = ''; 
+                document.getElementById('inputCant').value = ''; 
+                document.getElementById('inputProveedor').focus(); 
             })
             .catch(error => {
                 alert("Hubo un problema de conexión. Revisá tu internet.");
