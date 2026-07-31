@@ -1,4 +1,149 @@
-function generarDocumento() {
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Pedidos - INGESIR</title>
+    <!-- Cargamos Bootstrap para el diseño moderno -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        /* Nuevo esquema de color: Azul Acero / Pizarra */
+        .header-bg { background-color: #34495E; color: white; border-bottom: 4px solid #58595b; }
+        .card { border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        /* El borde lateral ahora combina con el logo */
+        .section-title { font-weight: bold; color: #34495E; border-left: 4px solid #6b8fae; padding-left: 10px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .btn-principal { background-color: #4A6C8C; color: white; border: none; }
+        .btn-principal:hover { background-color: #3b5670; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Encabezado -->
+    <div class="header-bg p-4 mb-4">
+        <div class="container d-flex align-items-center">
+            <!-- Contenedor del Logo -->
+            <div class="bg-white p-2 rounded me-4 shadow-sm d-flex align-items-center justify-content-center" style="width: 140px; height: 70px;">
+                <img src="LOGO.png" alt="INGESIR Logo" style="max-height: 100%; max-width: 100%;">
+            </div>
+            <div>
+                <small class="text-uppercase" style="letter-spacing: 1px; color: #cbd5e1;">Gestión de Compras</small>
+                <h3 class="mb-0 fw-bold">Cotizaciones y Notas de Pedido</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal -->
+    <div class="container" style="max-width: 800px;">
+        
+        <!-- Tarjeta 1: Datos -->
+        <div class="card p-4 mb-4">
+            <h6 class="section-title mb-4">Datos del Documento</h6>
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold">Proveedor</label>
+                    <input type="text" class="form-control bg-light" id="inputProveedor" placeholder="Nombre del proveedor...">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold">Tipo de Documento</label>
+                    <select class="form-select bg-light" id="selectTipo">
+                        <option value="Pedido de Cotización">Pedido de Cotización</option>
+                        <option value="Nota de Pedido">Nota de Pedido</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Carga de Ítems -->
+        <div class="card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 class="section-title mb-0">Artículos Solicitados</h6>
+                <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="recuperarMemoria()">
+                    🔄 Cargar lista anterior
+                </button>
+            </div>
+            
+            <div class="row g-2 mb-3 align-items-end p-3 bg-light rounded border">
+                <div class="col-sm-7">
+                    <label class="form-label text-muted small mb-1">Descripción</label>
+                    <input type="text" class="form-control" id="inputDesc" placeholder="Ej: Bulón M8x35">
+                </div>
+                <div class="col-sm-3">
+                    <label class="form-label text-muted small mb-1">Cantidad</label>
+                    <input type="text" class="form-control" id="inputCant" placeholder="Ej: 10 un">
+                </div>
+                <div class="col-sm-2">
+                    <button class="btn btn-principal w-100 fw-bold" onclick="leerInputYAgregar()">Agregar</button>
+                </div>
+            </div>
+
+            <!-- Lista visual de ítems -->
+            <div class="table-responsive">
+                <table class="table table-hover mt-3 align-middle" id="tablaItems">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-secondary small">Descripción del Artículo</th>
+                            <th class="text-secondary small" style="width: 120px;">Cant.</th>
+                            <th style="width: 80px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTabla">
+                        <!-- Los ítems aparecerán acá -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Botón de Generación -->
+        <div class="text-end mb-5">
+            <button class="btn btn-success px-5 py-3 fw-bold shadow-sm" style="border-radius: 8px; font-size: 1.1rem;" onclick="generarDocumento()">📄 GENERAR DOCUMENTO</button>
+        </div>
+
+    </div>
+
+    <!-- La Lógica (JavaScript) -->
+    <script>
+        function leerInputYAgregar() {
+            const desc = document.getElementById('inputDesc').value;
+            const cant = document.getElementById('inputCant').value;
+
+            if (desc === '') {
+                alert('Falta ingresar la descripción del artículo.');
+                return;
+            }
+            agregarFila(desc, cant);
+            document.getElementById('inputDesc').value = '';
+            document.getElementById('inputCant').value = '';
+            document.getElementById('inputDesc').focus();
+        }
+
+        function agregarFila(descripcion, cantidad) {
+            const tbody = document.getElementById('cuerpoTabla');
+            const fila = document.createElement('tr');
+            
+            fila.innerHTML = `
+                <td class="desc-item fw-medium text-dark">${descripcion}</td>
+                <td><input type="text" class="form-control form-control-sm cant-item text-center fw-bold text-primary" value="${cantidad}"></td>
+                <td class="text-end"><button class="btn btn-sm btn-outline-danger border-0" onclick="this.parentElement.parentElement.remove()">✕ Quitar</button></td>
+            `;
+            tbody.appendChild(fila);
+        }
+
+        function recuperarMemoria() {
+            const guardado = localStorage.getItem('ingesir_borrador');
+            if(guardado) {
+                const items = JSON.parse(guardado);
+                document.getElementById('cuerpoTabla').innerHTML = '';
+                items.forEach(item => {
+                    agregarFila(item.desc, item.cant);
+                });
+            } else {
+                alert("No hay registros guardados anteriormente.");
+            }
+        }
+
+        function generarDocumento() {
             const proveedor = document.getElementById('inputProveedor').value;
             const tipoDoc = document.getElementById('selectTipo').value;
             const filas = document.querySelectorAll('#cuerpoTabla tr');
@@ -16,39 +161,42 @@ function generarDocumento() {
                 return;
             }
 
-            // Guardamos en memoria local de tu navegador por si querés recuperar la lista después
+            // Guardamos en memoria local
             localStorage.setItem('ingesir_borrador', JSON.stringify(itemsParaGuardar));
 
-            // Armamos la caja con los datos para mandarla por internet
+            // Armamos los datos
             const datos = {
                 proveedor: proveedor,
                 tipoDoc: tipoDoc,
                 items: itemsParaGuardar
             };
 
-            // Efecto visual: Cambiamos el texto del botón para que sepas que está procesando
+            // Cambiamos el botón para avisar que está trabajando
             const btn = document.querySelector('.btn-success');
             btn.innerHTML = "⏳ GENERANDO PDF EN EL DRIVE...";
             btn.disabled = true;
 
-            // --- REEMPLAZÁ ESTO POR LA URL QUE COPIASTE DE GOOGLE ---
-            const urlGoogle = 'PEGA_TU_URL_AQUI_ADENTRO'; 
+            // --- TU URL EXACTA DE GOOGLE SHEETS ---
+            const urlGoogle = 'https://script.google.com/macros/s/AKfycbwarkcDCdb4dTlC9UtUi0OS4bHRQWvo2BvO3kEeX4klKuph1H4WhiNI_CMd1j8ZnI9V/exec'; 
             
             // Enviamos los datos
             fetch(urlGoogle, {
                 method: 'POST',
-                mode: 'no-cors', // Evita bloqueos de seguridad del navegador
+                mode: 'no-cors', 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(datos)
             })
             .then(() => {
-                alert("✅ ¡Éxito!\n\nLos datos se enviaron a tu Google Sheets y el PDF se guardó en tu carpeta de Drive.");
+                alert("✅ ¡Éxito!\n\nLos datos se enviaron y el PDF se guardó en tu carpeta de Drive.");
                 btn.innerHTML = "📄 GENERAR DOCUMENTO";
                 btn.disabled = false;
             })
             .catch(error => {
-                alert("Hubo un problema de conexión. Revisá tu internet o el enlace de Google.");
+                alert("Hubo un problema de conexión. Revisá tu internet.");
                 btn.innerHTML = "📄 GENERAR DOCUMENTO";
                 btn.disabled = false;
             });
         }
+    </script>
+</body>
+</html>
