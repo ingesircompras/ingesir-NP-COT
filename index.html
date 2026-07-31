@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Pedidos - INGESIR</title>
-    <!-- Cargamos Bootstrap para el diseño moderno -->
+    <!-- Cargamos Bootstrap CSS para el diseño -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; }
-        /* Nuevo esquema de color: Azul Acero / Pizarra */
         .header-bg { background-color: #34495E; color: white; border-bottom: 4px solid #58595b; }
         .card { border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        /* El borde lateral ahora combina con el logo */
         .section-title { font-weight: bold; color: #34495E; border-left: 4px solid #6b8fae; padding-left: 10px; text-transform: uppercase; letter-spacing: 0.5px;}
         .btn-principal { background-color: #4A6C8C; color: white; border: none; }
         .btn-principal:hover { background-color: #3b5670; color: white; }
@@ -22,7 +20,6 @@
     <!-- Encabezado -->
     <div class="header-bg p-4 mb-4">
         <div class="container d-flex align-items-center">
-            <!-- Contenedor del Logo -->
             <div class="bg-white p-2 rounded me-4 shadow-sm d-flex align-items-center justify-content-center" style="width: 140px; height: 70px;">
                 <img src="LOGO.png" alt="INGESIR Logo" style="max-height: 100%; max-width: 100%;">
             </div>
@@ -59,8 +56,8 @@
         <div class="card p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h6 class="section-title mb-0">Artículos Solicitados</h6>
-                <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="recuperarMemoria()">
-                    🔄 Cargar lista anterior
+                <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="abrirHistorial()">
+                    📜 Ver historial guardado
                 </button>
             </div>
             
@@ -99,8 +96,27 @@
         <div class="text-end mb-5">
             <button class="btn btn-success px-5 py-3 fw-bold shadow-sm" style="border-radius: 8px; font-size: 1.1rem;" onclick="generarDocumento()">📄 GENERAR DOCUMENTO</button>
         </div>
-
     </div>
+
+    <!-- Modal del Historial (La ventanita flotante) -->
+    <div class="modal fade" id="modalHistorial" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold text-dark" style="font-size: 1.1rem;">Últimos documentos generados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="list-group list-group-flush" id="listaHistorial">
+                        <!-- Acá se van a cargar los botones del historial -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cargamos Bootstrap JS para que funcione la ventanita flotante -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- La Lógica (JavaScript) -->
     <script>
@@ -130,19 +146,71 @@
             tbody.appendChild(fila);
         }
 
-        function recuperarMemoria() {
-            const guardado = localStorage.getItem('ingesir_borrador');
-            if(guardado) {
-                const items = JSON.parse(guardado);
-                document.getElementById('cuerpoTabla').innerHTML = '';
-                items.forEach(item => {
-                    agregarFila(item.desc, item.cant);
-                });
-            } else {
-                alert("No hay registros guardados anteriormente.");
+        // NUEVO: Guarda hasta 10 pedidos en el historial
+        function guardarEnHistorial(proveedor, tipoDoc, items) {
+            let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
+            
+            let nuevoRegistro = {
+                fecha: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'}),
+                proveedor: proveedor,
+                tipoDoc: tipoDoc,
+                items: items
+            };
+
+            historial.unshift(nuevoRegistro); // Lo agrega al principio de la lista
+            
+            if (historial.length > 10) {
+                historial.pop(); // Si hay más de 10, borra el más viejo
             }
+            
+            localStorage.setItem('ingesir_historial', JSON.stringify(historial));
         }
 
+        // NUEVO: Abre la ventanita con la lista de pedidos guardados
+        function abrirHistorial() {
+            let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
+            let contenedor = document.getElementById('listaHistorial');
+            contenedor.innerHTML = '';
+
+            if (historial.length === 0) {
+                contenedor.innerHTML = '<div class="p-4 text-center text-muted">No hay documentos guardados todavía.</div>';
+            } else {
+                historial.forEach((reg, index) => {
+                    let btn = document.createElement('button');
+                    btn.className = 'list-group-item list-group-item-action p-3';
+                    btn.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold text-dark">${reg.proveedor}</h6>
+                            <small class="text-muted" style="font-size: 0.75rem;">${reg.fecha}</small>
+                        </div>
+                        <small class="text-secondary">${reg.tipoDoc} - ${reg.items.length} artículos</small>
+                    `;
+                    btn.onclick = () => cargarDesdeHistorial(index);
+                    contenedor.appendChild(btn);
+                });
+            }
+            
+            let modal = new bootstrap.Modal(document.getElementById('modalHistorial'));
+            modal.show();
+        }
+
+        // NUEVO: Pone los datos seleccionados en la pantalla
+        function cargarDesdeHistorial(index) {
+            let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
+            let reg = historial[index];
+            
+            document.getElementById('inputProveedor').value = reg.proveedor;
+            document.getElementById('cuerpoTabla').innerHTML = ''; // Limpia la tabla
+            
+            reg.items.forEach(item => {
+                agregarFila(item.desc, item.cant);
+            });
+            
+            // Cierra la ventanita
+            bootstrap.Modal.getInstance(document.getElementById('modalHistorial')).hide();
+        }
+
+        // Función Principal
         function generarDocumento() {
             const proveedor = document.getElementById('inputProveedor').value;
             const tipoDoc = document.getElementById('selectTipo').value;
@@ -161,17 +229,15 @@
                 return;
             }
 
-            // Guardamos en memoria local
-            localStorage.setItem('ingesir_borrador', JSON.stringify(itemsParaGuardar));
+            // Llamamos a la nueva función que guarda en el historial múltiple
+            guardarEnHistorial(proveedor, tipoDoc, itemsParaGuardar);
 
-            // Armamos los datos
             const datos = {
                 proveedor: proveedor,
                 tipoDoc: tipoDoc,
                 items: itemsParaGuardar
             };
 
-            // Cambiamos el botón para avisar que está trabajando
             const btn = document.querySelector('.btn-success');
             btn.innerHTML = "⏳ GENERANDO PDF EN EL DRIVE...";
             btn.disabled = true;
@@ -179,7 +245,6 @@
             // --- TU URL EXACTA DE GOOGLE SHEETS ---
             const urlGoogle = 'https://script.google.com/macros/s/AKfycbwarkcDCdb4dTlC9UtUi0OS4bHRQWvo2BvO3kEeX4klKuph1H4WhiNI_CMd1j8ZnI9V/exec'; 
             
-            // Enviamos los datos
             fetch(urlGoogle, {
                 method: 'POST',
                 mode: 'no-cors', 
@@ -187,7 +252,7 @@
                 body: JSON.stringify(datos)
             })
             .then(() => {
-                alert("✅ ¡Éxito!\n\nLos datos se enviaron y el PDF se guardó en tu carpeta de Drive.");
+                alert("✅ ¡Éxito!\n\nEl PDF se generó en Drive y el pedido quedó guardado en tu historial local.");
                 btn.innerHTML = "📄 GENERAR DOCUMENTO";
                 btn.disabled = false;
             })
