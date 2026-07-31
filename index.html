@@ -244,18 +244,20 @@
             // --- TU URL EXACTA DE GOOGLE SHEETS ---
             const urlGoogle = 'https://script.google.com/macros/s/AKfycbwarkcDCdb4dTlC9UtUi0OS4bHRQWvo2BvO3kEeX4klKuph1H4WhiNI_CMd1j8ZnI9V/exec'; 
             
+            // Usamos text/plain para evitar bloqueos de seguridad del navegador
             fetch(urlGoogle, {
                 method: 'POST',
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
                 body: JSON.stringify(datos)
             })
             .then(() => {
-                alert("✅ ¡Éxito!\n\nEl documento se está generando en Drive y el pedido quedó guardado en tu historial.");
+                alert("✅ ¡Éxito!\n\nEl PDF se está generando en Drive y el pedido quedó guardado en tu historial.");
                 btn.innerHTML = "📄 GENERAR DOCUMENTO";
                 btn.disabled = false;
 
-                // --- MAGIA: LIMPIEZA AUTOMÁTICA DE LA PANTALLA ---
+                // --- LIMPIEZA AUTOMÁTICA DE LA PANTALLA ---
                 document.getElementById('inputProveedor').value = ''; 
                 document.getElementById('cuerpoTabla').innerHTML = ''; 
                 document.getElementById('inputDesc').value = ''; 
