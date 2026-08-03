@@ -178,7 +178,7 @@
         }
 
         function generarYGuardarPDF() {
-            const proveedor = document.getElementById('inputProveedor').value;
+            const proveedor = document.getElementById('inputProveedor').value.trim();
             const tipoDoc = document.getElementById('selectTipo').value;
             const refNum = document.getElementById('inputRef').value.trim();
 
@@ -209,7 +209,6 @@
                 return;
             }
 
-            // Guardamos en el historial con su tipo y referencia exacta
             guardarEnHistorial(proveedor, tipoDoc, refNum, items);
 
             const { jsPDF } = window.jspdf;
@@ -243,21 +242,26 @@
             
             doc.text(`Número REF: ${refNum}`, 14, 56);
             doc.text(`Fecha: ${fechaActual}`, 130, 56);
-            doc.text(`Proveedor: ${proveedor}`, 14, 63);
+            
+            // PROVEEDOR EN NEGRITA Y FUENTE MÁS GRANDE (13pt)
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(13);
+            doc.text(`Proveedor: ${proveedor}`, 14, 65);
 
             doc.setDrawColor(200, 200, 200);
-            doc.line(14, 68, 196, 68);
+            doc.line(14, 71, 196, 71);
 
             // Tabla Cabecera
             doc.setFillColor(74, 108, 140);
-            doc.rect(14, 73, 182, 8, 'F');
+            doc.rect(14, 76, 182, 8, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFont("helvetica", "bold");
-            doc.text("ÍTEM", 18, 79);
-            doc.text("DESCRIPCIÓN DEL ARTÍCULO", 40, 79);
-            doc.text("CANTIDAD", 160, 79);
+            doc.setFontSize(10);
+            doc.text("ÍTEM", 18, 82);
+            doc.text("DESCRIPCIÓN DEL ARTÍCULO", 40, 82);
+            doc.text("CANTIDAD", 160, 82);
 
-            let y = 87;
+            let y = 90;
             doc.setFont("helvetica", "normal");
             doc.setTextColor(40, 40, 40);
 
@@ -303,7 +307,7 @@
             btn.innerHTML = "⏳ GUARDANDO EN DRIVE...";
             btn.disabled = true;
 
-            const urlGoogle = 'https://script.google.com/macros/s/AKfycbwuF2Z8mV4fAzIT9rv6peJJynYhNQ3ZNk44Uuc-AjAvHY1MpbJSvmzCxtjdHeyYVZ-5/exec'; // Recordá poner tu URL de Apps Script aquí
+            const urlGoogle = 'TU_URL_DE_APPS_SCRIPT_AQUI'; // Recordá poner tu URL de Apps Script aquí
 
             fetch(urlGoogle, {
                 method: 'POST',
