@@ -1,4 +1,216 @@
-function generarDocumento() {
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Pedidos - INGESIR</title>
+    <!-- Cargamos Bootstrap CSS para el diseño -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .header-bg { background-color: #34495E; color: white; border-bottom: 4px solid #58595b; }
+        .card { border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .section-title { font-weight: bold; color: #34495E; border-left: 4px solid #6b8fae; padding-left: 10px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .btn-principal { background-color: #4A6C8C; color: white; border: none; }
+        .btn-principal:hover { background-color: #3b5670; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Encabezado -->
+    <div class="header-bg p-4 mb-4">
+        <div class="container d-flex align-items-center">
+            <div class="bg-white p-2 rounded me-4 shadow-sm d-flex align-items-center justify-content-center" style="width: 140px; height: 70px;">
+                <img src="LOGO.png" alt="INGESIR Logo" style="max-height: 100%; max-width: 100%;">
+            </div>
+            <div>
+                <small class="text-uppercase" style="letter-spacing: 1px; color: #cbd5e1;">Gestión de Compras</small>
+                <h3 class="mb-0 fw-bold">Cotizaciones y Notas de Pedido</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal -->
+    <div class="container" style="max-width: 800px;">
+        
+        <!-- Tarjeta 1: Datos -->
+        <div class="card p-4 mb-4">
+            <h6 class="section-title mb-4">Datos del Documento</h6>
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold">Proveedor</label>
+                    <input type="text" class="form-control bg-light" id="inputProveedor" placeholder="Nombre del proveedor...">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small fw-bold">Tipo de Documento</label>
+                    <select class="form-select bg-light" id="selectTipo">
+                        <option value="Pedido de Cotización">Pedido de Cotización</option>
+                        <option value="Nota de Pedido">Nota de Pedido</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Carga de Ítems -->
+        <div class="card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 class="section-title mb-0">Artículos Solicitados</h6>
+                <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="abrirHistorial()">
+                    📜 Ver historial guardado
+                </button>
+            </div>
+            
+            <div class="row g-2 mb-3 align-items-end p-3 bg-light rounded border">
+                <div class="col-sm-7">
+                    <label class="form-label text-muted small mb-1">Descripción</label>
+                    <input type="text" class="form-control" id="inputDesc" placeholder="Ej: Bulón M8x35">
+                </div>
+                <div class="col-sm-3">
+                    <label class="form-label text-muted small mb-1">Cantidad</label>
+                    <input type="text" class="form-control" id="inputCant" placeholder="Ej: 10 un">
+                </div>
+                <div class="col-sm-2">
+                    <button class="btn btn-principal w-100 fw-bold" onclick="leerInputYAgregar()">Agregar</button>
+                </div>
+            </div>
+
+            <!-- Lista visual de ítems -->
+            <div class="table-responsive">
+                <table class="table table-hover mt-3 align-middle" id="tablaItems">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-secondary small">Descripción del Artículo</th>
+                            <th class="text-secondary small" style="width: 120px;">Cant.</th>
+                            <th style="width: 80px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTabla">
+                        <!-- Los ítems aparecerán acá -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Botón de Generación -->
+        <div class="text-end mb-5">
+            <button class="btn btn-success px-5 py-3 fw-bold shadow-sm" style="border-radius: 8px; font-size: 1.1rem;" onclick="generarDocumento()">📄 GENERAR DOCUMENTO</button>
+        </div>
+    </div>
+
+    <!-- Modal del Historial (La ventanita flotante) -->
+    <div class="modal fade" id="modalHistorial" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold text-dark" style="font-size: 1.1rem;">Últimos documentos generados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="list-group list-group-flush" id="listaHistorial">
+                        <!-- Acá se van a cargar los botones del historial -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cargamos Bootstrap JS para que funcione la ventanita flotante -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- La Lógica (JavaScript) -->
+    <script>
+        function leerInputYAgregar() {
+            const desc = document.getElementById('inputDesc').value;
+            const cant = document.getElementById('inputCant').value;
+
+            if (desc === '') {
+                alert('Falta ingresar la descripción del artículo.');
+                return;
+            }
+            agregarFila(desc, cant);
+            document.getElementById('inputDesc').value = '';
+            document.getElementById('inputCant').value = '';
+            document.getElementById('inputDesc').focus();
+        }
+
+        function agregarFila(descripcion, cantidad) {
+            const tbody = document.getElementById('cuerpoTabla');
+            const fila = document.createElement('tr');
+            
+            fila.innerHTML = `
+                <td class="desc-item fw-medium text-dark">${descripcion}</td>
+                <td><input type="text" class="form-control form-control-sm cant-item text-center fw-bold text-primary" value="${cantidad}"></td>
+                <td class="text-end"><button class="btn btn-sm btn-outline-danger border-0" onclick="this.parentElement.parentElement.remove()">✕ Quitar</button></td>
+            `;
+            tbody.appendChild(fila);
+        }
+
+        // Guarda hasta 10 pedidos en el historial
+        function guardarEnHistorial(proveedor, tipoDoc, items) {
+            let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
+            
+            let nuevoRegistro = {
+                fecha: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'}),
+                proveedor: proveedor,
+                tipoDoc: tipoDoc,
+                items: items
+            };
+
+            historial.unshift(nuevoRegistro); 
+            
+            if (historial.length > 10) {
+                historial.pop(); 
+            }
+            
+            localStorage.setItem('ingesir_historial', JSON.stringify(historial));
+        }
+
+        // Abre la ventanita con la lista de pedidos guardados
+        function abrirHistorial() {
+            let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
+            let contenedor = document.getElementById('listaHistorial');
+            contenedor.innerHTML = '';
+
+            if (historial.length === 0) {
+                contenedor.innerHTML = '<div class="p-4 text-center text-muted">No hay documentos guardados todavía.</div>';
+            } else {
+                historial.forEach((reg, index) => {
+                    let btn = document.createElement('button');
+                    btn.className = 'list-group-item list-group-item-action p-3';
+                    btn.innerHTML = `
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold text-dark">${reg.proveedor}</h6>
+                            <small class="text-muted" style="font-size: 0.75rem;">${reg.fecha}</small>
+                        </div>
+                        <small class="text-secondary">${reg.tipoDoc} - ${reg.items.length} artículos</small>
+                    `;
+                    btn.onclick = () => cargarDesdeHistorial(index);
+                    contenedor.appendChild(btn);
+                });
+            }
+            
+            let modal = new bootstrap.Modal(document.getElementById('modalHistorial'));
+            modal.show();
+        }
+
+        // Pone los datos seleccionados en la pantalla
+        function cargarDesdeHistorial(index) {
+            let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
+            let reg = historial[index];
+            
+            document.getElementById('inputProveedor').value = reg.proveedor;
+            document.getElementById('cuerpoTabla').innerHTML = ''; 
+            
+            reg.items.forEach(item => {
+                agregarFila(item.desc, item.cant);
+            });
+            
+            bootstrap.Modal.getInstance(document.getElementById('modalHistorial')).hide();
+        }
+
+        // Función Principal con diagnóstico
+        function generarDocumento() {
             const proveedor = document.getElementById('inputProveedor').value;
             const tipoDoc = document.getElementById('selectTipo').value;
             const filas = document.querySelectorAll('#cuerpoTabla tr');
@@ -56,3 +268,6 @@ function generarDocumento() {
                 btn.disabled = false;
             });
         }
+    </script>
+</body>
+</html>
