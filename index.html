@@ -31,23 +31,29 @@
 
     <div class="container" style="max-width: 800px;">
         
+        <!-- Datos del Documento -->
         <div class="card p-4 mb-4">
             <h6 class="section-title mb-4">Datos del Documento</h6>
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label text-muted small fw-bold">Proveedor</label>
                     <input type="text" class="form-control bg-light" id="inputProveedor" placeholder="Nombre del proveedor...">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label text-muted small fw-bold">Tipo de Documento</label>
                     <select class="form-select bg-light" id="selectTipo">
                         <option value="NOTA DE PEDIDO">Nota de Pedido</option>
                         <option value="COTIZACION">Cotización</option>
                     </select>
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label text-muted small fw-bold">Nro. de Referencia (Opcional)</label>
+                    <input type="text" class="form-control bg-light" id="inputRef" placeholder="Automático si se deja vacío">
+                </div>
             </div>
         </div>
 
+        <!-- Carga de Ítems -->
         <div class="card p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h6 class="section-title mb-0">Artículos Solicitados</h6>
@@ -130,11 +136,11 @@
             tbody.appendChild(fila);
         }
 
-        function guardarEnHistorial(proveedor, tipoDoc, items) {
+        function guardarEnHistorial(proveedor, tipoDoc, ref, items) {
             let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
             let nuevoRegistro = {
                 fecha: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'}),
-                proveedor: proveedor, tipoDoc: tipoDoc, items: items
+                proveedor: proveedor, tipoDoc: tipoDoc, ref: ref, items: items
             };
             historial.unshift(nuevoRegistro);
             if (historial.length > 10) historial.pop();
@@ -151,7 +157,7 @@
                 historial.forEach((reg, index) => {
                     let btn = document.createElement('button');
                     btn.className = 'list-group-item list-group-item-action p-3';
-                    btn.innerHTML = `<div class="d-flex w-100 justify-content-between"><h6 class="mb-0 fw-bold">${reg.proveedor}</h6><small>${reg.fecha}</small></div><small>${reg.tipoDoc} - ${reg.items.length} ítems</small>`;
+                    btn.innerHTML = `<div class="d-flex w-100 justify-content-between"><h6 class="mb-0 fw-bold">${reg.proveedor} (REF: ${reg.ref})</h6><small>${reg.fecha}</small></div><small>${reg.tipoDoc} - ${reg.items.length} ítems</small>`;
                     btn.onclick = () => cargarDesdeHistorial(index);
                     contenedor.appendChild(btn);
                 });
@@ -164,6 +170,7 @@
             let reg = historial[index];
             document.getElementById('inputProveedor').value = reg.proveedor;
             document.getElementById('selectTipo').value = reg.tipoDoc;
+            document.getElementById('inputRef').value = reg.ref;
             document.getElementById('cuerpoTabla').innerHTML = '';
             contadorItems = 1;
             reg.items.forEach(item => agregarFila(item.desc, item.cant));
@@ -173,6 +180,13 @@
         function generarYGuardarPDF() {
             const proveedor = document.getElementById('inputProveedor').value;
             const tipoDoc = document.getElementById('selectTipo').value;
+            let refNum = document.getElementById('inputRef').value.trim();
+            
+            // Si el campo de referencia está vacío, generamos uno automático
+            if (refNum === '') {
+                refNum = Math.floor(100000 + Math.random() * 900000).toString();
+            }
+
             const filas = document.querySelectorAll('#cuerpoTabla tr');
             let items = [];
 
@@ -188,7 +202,7 @@
                 return;
             }
 
-            guardarEnHistorial(proveedor, tipoDoc, items);
+            guardarEnHistorial(proveedor, tipoDoc, refNum, items);
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -218,7 +232,6 @@
             doc.setFont("helvetica", "normal");
             doc.setTextColor(50, 50, 50);
             const fechaActual = new Date().toLocaleDateString('es-AR');
-            const refNum = Math.floor(100000 + Math.random() * 900000);
             
             doc.text(`Número REF: ${refNum}`, 14, 56);
             doc.text(`Fecha: ${fechaActual}`, 130, 56);
@@ -273,17 +286,16 @@
 
             const nombreArchivo = `${tipoDoc}_${refNum}_${proveedor}.pdf`;
 
-            // Descarga local en la PC del usuario
+            // Descarga local
             doc.save(nombreArchivo);
 
-            // Convertimos el PDF a Base64 para enviarlo a Google Drive en segundo plano
+            // Subida a Drive en segundo plano
             const pdfBase64 = doc.output('datauristring').split(',')[1];
-            
             const btn = document.querySelector('.btn-success');
             btn.innerHTML = "⏳ GUARDANDO EN DRIVE...";
             btn.disabled = true;
 
-            const urlGoogle = 'https://script.google.com/macros/s/AKfycbwuF2Z8mV4fAzIT9rv6peJJynYhNQ3ZNk44Uuc-AjAvHY1MpbJSvmzCxtjdHeyYVZ-5/exec'; // Pegá tu URL de Google Apps Script entre las comillas
+            const urlGoogle = 'TU_URL_DE_APPS_SCRIPT_AQUI'; // Recordá poner tu URL de Apps Script aquí
 
             fetch(urlGoogle, {
                 method: 'POST',
@@ -292,12 +304,13 @@
             })
             .then(res => res.json())
             .then(res => {
-                alert("✅ ¡Éxito!\n\nEl PDF se descargó en tu equipo y se guardó en tu Google Drive.");
+                alert("✅ ¡Éxito!\n\nEl PDF se descargó y se guardó en tu Google Drive.");
                 btn.innerHTML = "📄 GENERAR Y GUARDAR EN DRIVE";
                 btn.disabled = false;
                 
                 // Limpieza de pantalla
                 document.getElementById('inputProveedor').value = '';
+                document.getElementById('inputRef').value = '';
                 document.getElementById('cuerpoTabla').innerHTML = '';
                 contadorItems = 1;
                 document.getElementById('inputDesc').value = '';
@@ -305,7 +318,7 @@
                 document.getElementById('inputProveedor').focus();
             })
             .catch(err => {
-                alert("⚠️ El PDF se descargó localmente, pero hubo un error al subirlo a Drive.");
+                alert("⚠️ El PDF se descargó en tu PC, pero falló la subida a Drive.");
                 btn.innerHTML = "📄 GENERAR Y GUARDAR EN DRIVE";
                 btn.disabled = false;
             });
