@@ -45,8 +45,9 @@
                 <div class="col-md-6">
                     <label class="form-label text-muted small fw-bold">Tipo de Documento</label>
                     <select class="form-select bg-light" id="selectTipo">
-                        <option value="Pedido de Cotización">Pedido de Cotización</option>
-                        <option value="Nota de Pedido">Nota de Pedido</option>
+                        <!-- VALORES EXACTOS QUE PIDE TU GOOGLE SHEETS -->
+                        <option value="COTIZACION">Cotización</option>
+                        <option value="NOTA DE PEDIDO">Nota de Pedido</option>
                     </select>
                 </div>
             </div>
@@ -98,7 +99,7 @@
         </div>
     </div>
 
-    <!-- Modal del Historial (La ventanita flotante) -->
+    <!-- Modal del Historial -->
     <div class="modal fade" id="modalHistorial" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -107,18 +108,14 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-0">
-                    <div class="list-group list-group-flush" id="listaHistorial">
-                        <!-- Acá se van a cargar los botones del historial -->
-                    </div>
+                    <div class="list-group list-group-flush" id="listaHistorial"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Cargamos Bootstrap JS para que funcione la ventanita flotante -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- La Lógica (JavaScript) -->
     <script>
         function leerInputYAgregar() {
             const desc = document.getElementById('inputDesc').value;
@@ -146,27 +143,19 @@
             tbody.appendChild(fila);
         }
 
-        // Guarda hasta 10 pedidos en el historial
         function guardarEnHistorial(proveedor, tipoDoc, items) {
             let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
-            
             let nuevoRegistro = {
                 fecha: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'}),
                 proveedor: proveedor,
                 tipoDoc: tipoDoc,
                 items: items
             };
-
             historial.unshift(nuevoRegistro); 
-            
-            if (historial.length > 10) {
-                historial.pop(); 
-            }
-            
+            if (historial.length > 10) historial.pop(); 
             localStorage.setItem('ingesir_historial', JSON.stringify(historial));
         }
 
-        // Abre la ventanita con la lista de pedidos guardados
         function abrirHistorial() {
             let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
             let contenedor = document.getElementById('listaHistorial');
@@ -189,27 +178,20 @@
                     contenedor.appendChild(btn);
                 });
             }
-            
             let modal = new bootstrap.Modal(document.getElementById('modalHistorial'));
             modal.show();
         }
 
-        // Pone los datos seleccionados en la pantalla
         function cargarDesdeHistorial(index) {
             let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
             let reg = historial[index];
-            
             document.getElementById('inputProveedor').value = reg.proveedor;
+            document.getElementById('selectTipo').value = reg.tipoDoc;
             document.getElementById('cuerpoTabla').innerHTML = ''; 
-            
-            reg.items.forEach(item => {
-                agregarFila(item.desc, item.cant);
-            });
-            
+            reg.items.forEach(item => agregarFila(item.desc, item.cant));
             bootstrap.Modal.getInstance(document.getElementById('modalHistorial')).hide();
         }
 
-        // Función Principal con diagnóstico
         function generarDocumento() {
             const proveedor = document.getElementById('inputProveedor').value;
             const tipoDoc = document.getElementById('selectTipo').value;
@@ -244,13 +226,12 @@
             
             fetch(urlGoogle, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(datos)
             })
             .then(response => response.text())
             .then(resultado => {
+                // Una vez que verifiques que ya se guarda, podés cambiar este alert por un mensaje de éxito limpio
                 alert("Respuesta del servidor:\n" + resultado);
                 btn.innerHTML = "📄 GENERAR DOCUMENTO";
                 btn.disabled = false;
