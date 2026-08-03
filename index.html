@@ -4,39 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Pedidos - INGESIR</title>
-    <!-- Cargamos Bootstrap CSS para el diseño -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { background-color: #f8f9fa; }
-        .header-bg { background-color: #34495E; color: white; border-bottom: 4px solid #58595b; }
+        .header-bg { background-color: #1b365d; color: white; border-bottom: 4px solid #4A6C8C; }
         .card { border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .section-title { font-weight: bold; color: #34495E; border-left: 4px solid #6b8fae; padding-left: 10px; text-transform: uppercase; letter-spacing: 0.5px;}
-        .btn-principal { background-color: #4A6C8C; color: white; border: none; }
-        .btn-principal:hover { background-color: #3b5670; color: white; }
+        .section-title { font-weight: bold; color: #1b365d; border-left: 4px solid #4A6C8C; padding-left: 10px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .btn-principal { background-color: #1b365d; color: white; border: none; }
+        .btn-principal:hover { background-color: #142845; color: white; }
     </style>
 </head>
 <body>
 
-    <!-- Encabezado -->
     <div class="header-bg p-4 mb-4">
         <div class="container d-flex align-items-center">
             <div class="bg-white p-2 rounded me-4 shadow-sm d-flex align-items-center justify-content-center" style="width: 140px; height: 70px;">
                 <img src="LOGO.png" alt="INGESIR Logo" style="max-height: 100%; max-width: 100%;">
             </div>
             <div>
-                <small class="text-uppercase" style="letter-spacing: 1px; color: #cbd5e1;">Gestión de Compras</small>
-                <h3 class="mb-0 fw-bold">Cotizaciones y Notas de Pedido</h3>
+                <small class="text-uppercase" style="letter-spacing: 1px; color: #cbd5e1;">INGESIR ENVASADORAS S.R.L.</small>
+                <h3 class="mb-0 fw-bold">Generador de Documentos</h3>
             </div>
         </div>
     </div>
 
-    <!-- Contenedor Principal -->
     <div class="container" style="max-width: 800px;">
         
-        <!-- Tarjeta 1: Datos -->
         <div class="card p-4 mb-4">
             <h6 class="section-title mb-4">Datos del Documento</h6>
-            
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label text-muted small fw-bold">Proveedor</label>
@@ -45,21 +41,17 @@
                 <div class="col-md-6">
                     <label class="form-label text-muted small fw-bold">Tipo de Documento</label>
                     <select class="form-select bg-light" id="selectTipo">
-                        <!-- VALORES EXACTOS QUE PIDE TU GOOGLE SHEETS -->
-                        <option value="COTIZACION">Cotización</option>
                         <option value="NOTA DE PEDIDO">Nota de Pedido</option>
+                        <option value="COTIZACION">Cotización</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <!-- Tarjeta 2: Carga de Ítems -->
         <div class="card p-4 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h6 class="section-title mb-0">Artículos Solicitados</h6>
-                <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="abrirHistorial()">
-                    📜 Ver historial guardado
-                </button>
+                <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="abrirHistorial()">📜 Ver historial</button>
             </div>
             
             <div class="row g-2 mb-3 align-items-end p-3 bg-light rounded border">
@@ -76,35 +68,32 @@
                 </div>
             </div>
 
-            <!-- Lista visual de ítems -->
             <div class="table-responsive">
                 <table class="table table-hover mt-3 align-middle" id="tablaItems">
                     <thead class="table-light">
                         <tr>
+                            <th class="text-secondary small" style="width: 70px;">Ítem</th>
                             <th class="text-secondary small">Descripción del Artículo</th>
                             <th class="text-secondary small" style="width: 120px;">Cant.</th>
                             <th style="width: 80px;"></th>
                         </tr>
                     </thead>
-                    <tbody id="cuerpoTabla">
-                        <!-- Los ítems aparecerán acá -->
-                    </tbody>
+                    <tbody id="cuerpoTabla"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Botón de Generación -->
         <div class="text-end mb-5">
-            <button class="btn btn-success px-5 py-3 fw-bold shadow-sm" style="border-radius: 8px; font-size: 1.1rem;" onclick="generarDocumento()">📄 GENERAR DOCUMENTO</button>
+            <button class="btn btn-success px-5 py-3 fw-bold shadow-sm" style="border-radius: 8px; font-size: 1.1rem;" onclick="generarYGuardarPDF()">📄 GENERAR Y GUARDAR EN DRIVE</button>
         </div>
     </div>
 
-    <!-- Modal del Historial -->
+    <!-- Modal Historial -->
     <div class="modal fade" id="modalHistorial" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-light">
-                    <h5 class="modal-title fw-bold text-dark" style="font-size: 1.1rem;">Últimos documentos generados</h5>
+                    <h5 class="modal-title fw-bold text-dark">Últimos documentos generados</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-0">
@@ -117,14 +106,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        let contadorItems = 1;
+
         function leerInputYAgregar() {
             const desc = document.getElementById('inputDesc').value;
             const cant = document.getElementById('inputCant').value;
-
-            if (desc === '') {
-                alert('Falta ingresar la descripción del artículo.');
-                return;
-            }
+            if (desc === '') { alert('Falta ingresar la descripción.'); return; }
             agregarFila(desc, cant);
             document.getElementById('inputDesc').value = '';
             document.getElementById('inputCant').value = '';
@@ -134,11 +121,11 @@
         function agregarFila(descripcion, cantidad) {
             const tbody = document.getElementById('cuerpoTabla');
             const fila = document.createElement('tr');
-            
             fila.innerHTML = `
+                <td class="num-item fw-bold text-secondary">${contadorItems++}</td>
                 <td class="desc-item fw-medium text-dark">${descripcion}</td>
                 <td><input type="text" class="form-control form-control-sm cant-item text-center fw-bold text-primary" value="${cantidad}"></td>
-                <td class="text-end"><button class="btn btn-sm btn-outline-danger border-0" onclick="this.parentElement.parentElement.remove()">✕ Quitar</button></td>
+                <td class="text-end"><button class="btn btn-sm btn-outline-danger border-0" onclick="this.parentElement.parentElement.remove()">✕</button></td>
             `;
             tbody.appendChild(fila);
         }
@@ -147,12 +134,10 @@
             let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
             let nuevoRegistro = {
                 fecha: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'}),
-                proveedor: proveedor,
-                tipoDoc: tipoDoc,
-                items: items
+                proveedor: proveedor, tipoDoc: tipoDoc, items: items
             };
-            historial.unshift(nuevoRegistro); 
-            if (historial.length > 10) historial.pop(); 
+            historial.unshift(nuevoRegistro);
+            if (historial.length > 10) historial.pop();
             localStorage.setItem('ingesir_historial', JSON.stringify(historial));
         }
 
@@ -160,26 +145,18 @@
             let historial = JSON.parse(localStorage.getItem('ingesir_historial')) || [];
             let contenedor = document.getElementById('listaHistorial');
             contenedor.innerHTML = '';
-
             if (historial.length === 0) {
-                contenedor.innerHTML = '<div class="p-4 text-center text-muted">No hay documentos guardados todavía.</div>';
+                contenedor.innerHTML = '<div class="p-4 text-center text-muted">No hay documentos guardados.</div>';
             } else {
                 historial.forEach((reg, index) => {
                     let btn = document.createElement('button');
                     btn.className = 'list-group-item list-group-item-action p-3';
-                    btn.innerHTML = `
-                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-                            <h6 class="mb-0 fw-bold text-dark">${reg.proveedor}</h6>
-                            <small class="text-muted" style="font-size: 0.75rem;">${reg.fecha}</small>
-                        </div>
-                        <small class="text-secondary">${reg.tipoDoc} - ${reg.items.length} artículos</small>
-                    `;
+                    btn.innerHTML = `<div class="d-flex w-100 justify-content-between"><h6 class="mb-0 fw-bold">${reg.proveedor}</h6><small>${reg.fecha}</small></div><small>${reg.tipoDoc} - ${reg.items.length} ítems</small>`;
                     btn.onclick = () => cargarDesdeHistorial(index);
                     contenedor.appendChild(btn);
                 });
             }
-            let modal = new bootstrap.Modal(document.getElementById('modalHistorial'));
-            modal.show();
+            new bootstrap.Modal(document.getElementById('modalHistorial')).show();
         }
 
         function cargarDesdeHistorial(index) {
@@ -187,65 +164,149 @@
             let reg = historial[index];
             document.getElementById('inputProveedor').value = reg.proveedor;
             document.getElementById('selectTipo').value = reg.tipoDoc;
-            document.getElementById('cuerpoTabla').innerHTML = ''; 
+            document.getElementById('cuerpoTabla').innerHTML = '';
+            contadorItems = 1;
             reg.items.forEach(item => agregarFila(item.desc, item.cant));
             bootstrap.Modal.getInstance(document.getElementById('modalHistorial')).hide();
         }
 
-        function generarDocumento() {
+        function generarYGuardarPDF() {
             const proveedor = document.getElementById('inputProveedor').value;
             const tipoDoc = document.getElementById('selectTipo').value;
             const filas = document.querySelectorAll('#cuerpoTabla tr');
-            let itemsParaGuardar = [];
+            let items = [];
 
             filas.forEach(fila => {
-                itemsParaGuardar.push({
+                items.push({
                     desc: fila.querySelector('.desc-item').innerText,
                     cant: fila.querySelector('.cant-item').value
                 });
             });
 
-            if (proveedor === '' || itemsParaGuardar.length === 0) {
-                alert('Falta ingresar el nombre del proveedor o agregar artículos.');
+            if (proveedor === '' || items.length === 0) {
+                alert('Falta ingresar el proveedor o agregar artículos.');
                 return;
             }
 
-            guardarEnHistorial(proveedor, tipoDoc, itemsParaGuardar);
+            guardarEnHistorial(proveedor, tipoDoc, items);
 
-            const datos = {
-                proveedor: proveedor,
-                tipoDoc: tipoDoc,
-                items: itemsParaGuardar
-            };
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
 
+            // Encabezado corporativo azul
+            doc.setFillColor(27, 54, 93);
+            doc.rect(0, 0, 210, 35, 'F');
+            
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text("INGESIR ENVASADORAS S.R.L.", 14, 15);
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("Av. Francia Nº 1771 - Rosario | CUIT: 30-70147850-5", 14, 22);
+            doc.text("Tel: 341-2502327 | compras@ingesir.com.ar", 14, 28);
+
+            // Título
+            doc.setTextColor(27, 54, 93);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(16);
+            doc.text(tipoDoc, 14, 48);
+
+            // Datos generales
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(50, 50, 50);
+            const fechaActual = new Date().toLocaleDateString('es-AR');
+            const refNum = Math.floor(100000 + Math.random() * 900000);
+            
+            doc.text(`Número REF: ${refNum}`, 14, 56);
+            doc.text(`Fecha: ${fechaActual}`, 130, 56);
+            doc.text(`Proveedor: ${proveedor}`, 14, 63);
+
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, 68, 196, 68);
+
+            // Tabla Cabecera
+            doc.setFillColor(74, 108, 140);
+            doc.rect(14, 73, 182, 8, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.text("ÍTEM", 18, 79);
+            doc.text("DESCRIPCIÓN DEL ARTÍCULO", 40, 79);
+            doc.text("CANTIDAD", 160, 79);
+
+            let y = 87;
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(40, 40, 40);
+
+            items.forEach((item, index) => {
+                if (y > 270) {
+                    doc.addPage();
+                    y = 25;
+                }
+                if (index % 2 === 0) {
+                    doc.setFillColor(248, 249, 250);
+                    doc.rect(14, y - 5, 182, 8, 'F');
+                }
+                doc.text((index + 1).toString(), 18, y);
+                doc.text(item.desc, 40, y);
+                doc.text(item.cant, 160, y);
+                y += 8;
+            });
+
+            // Pie de página y Firma institucional por hoja
+            const totalPaginas = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= totalPaginas; i++) {
+                doc.setPage(i);
+                doc.setDrawColor(150, 150, 150);
+                doc.line(130, 265, 190, 265);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                doc.text("Tec. Yamir Aracne", 130, 271);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text("Encargado de Compras", 130, 276);
+                doc.text(`Página ${i} de ${totalPaginas}`, 14, 276);
+            }
+
+            const nombreArchivo = `${tipoDoc}_${refNum}_${proveedor}.pdf`;
+
+            // Descarga local en la PC del usuario
+            doc.save(nombreArchivo);
+
+            // Convertimos el PDF a Base64 para enviarlo a Google Drive en segundo plano
+            const pdfBase64 = doc.output('datauristring').split(',')[1];
+            
             const btn = document.querySelector('.btn-success');
-            btn.innerHTML = "⏳ GENERANDO PDF EN EL DRIVE...";
+            btn.innerHTML = "⏳ GUARDANDO EN DRIVE...";
             btn.disabled = true;
 
-            const urlGoogle = 'https://script.google.com/macros/s/AKfycbwarkcDCdb4dTlC9UtUi0OS4bHRQWvo2BvO3kEeX4klKuph1H4WhiNI_CMd1j8ZnI9V/exec'; 
-            
+            const urlGoogle = 'TU_URL_DE_APPS_SCRIPT_AQUI'; // Pegá tu URL de Google Apps Script entre las comillas
+
             fetch(urlGoogle, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(datos)
+                body: JSON.stringify({ file: pdfBase64, filename: nombreArchivo })
             })
-            .then(response => response.text())
-            .then(resultado => {
-                // Una vez que verifiques que ya se guarda, podés cambiar este alert por un mensaje de éxito limpio
-                alert("Respuesta del servidor:\n" + resultado);
-                btn.innerHTML = "📄 GENERAR DOCUMENTO";
+            .then(res => res.json())
+            .then(res => {
+                alert("✅ ¡Éxito!\n\nEl PDF se descargó en tu equipo y se guardó en tu Google Drive.");
+                btn.innerHTML = "📄 GENERAR Y GUARDAR EN DRIVE";
                 btn.disabled = false;
-
-                // Limpieza automática
-                document.getElementById('inputProveedor').value = ''; 
-                document.getElementById('cuerpoTabla').innerHTML = ''; 
-                document.getElementById('inputDesc').value = ''; 
-                document.getElementById('inputCant').value = ''; 
-                document.getElementById('inputProveedor').focus(); 
+                
+                // Limpieza de pantalla
+                document.getElementById('inputProveedor').value = '';
+                document.getElementById('cuerpoTabla').innerHTML = '';
+                contadorItems = 1;
+                document.getElementById('inputDesc').value = '';
+                document.getElementById('inputCant').value = '';
+                document.getElementById('inputProveedor').focus();
             })
-            .catch(error => {
-                alert("Error de red: " + error);
-                btn.innerHTML = "📄 GENERAR DOCUMENTO";
+            .catch(err => {
+                alert("⚠️ El PDF se descargó localmente, pero hubo un error al subirlo a Drive.");
+                btn.innerHTML = "📄 GENERAR Y GUARDAR EN DRIVE";
                 btn.disabled = false;
             });
         }
