@@ -47,8 +47,8 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label text-muted small fw-bold">Nro. de Referencia (Opcional)</label>
-                    <input type="text" class="form-control bg-light" id="inputRef" placeholder="Automático si se deja vacío">
+                    <label class="form-label text-muted small fw-bold">Nro. de Referencia</label>
+                    <input type="text" class="form-control bg-light" id="inputRef" placeholder="Ej: 954725">
                 </div>
             </div>
         </div>
@@ -180,11 +180,18 @@
         function generarYGuardarPDF() {
             const proveedor = document.getElementById('inputProveedor').value;
             const tipoDoc = document.getElementById('selectTipo').value;
-            let refNum = document.getElementById('inputRef').value.trim();
-            
-            // Si el campo de referencia está vacío, generamos uno automático
+            const refNum = document.getElementById('inputRef').value.trim();
+
+            if (proveedor === '') {
+                alert('Por favor, ingresa el nombre del proveedor.');
+                document.getElementById('inputProveedor').focus();
+                return;
+            }
+
             if (refNum === '') {
-                refNum = Math.floor(100000 + Math.random() * 900000).toString();
+                alert('Por favor, ingresa el número de referencia.');
+                document.getElementById('inputRef').focus();
+                return;
             }
 
             const filas = document.querySelectorAll('#cuerpoTabla tr');
@@ -197,11 +204,12 @@
                 });
             });
 
-            if (proveedor === '' || items.length === 0) {
-                alert('Falta ingresar el proveedor o agregar artículos.');
+            if (items.length === 0) {
+                alert('Falta agregar artículos al documento.');
                 return;
             }
 
+            // Guardamos en el historial con su tipo y referencia exacta
             guardarEnHistorial(proveedor, tipoDoc, refNum, items);
 
             const { jsPDF } = window.jspdf;
@@ -304,11 +312,11 @@
             })
             .then(res => res.json())
             .then(res => {
-                alert("✅ ¡Éxito!\n\nEl PDF se descargó y se guardó en tu Google Drive.");
+                alert("✅ ¡Éxito!\n\nEl PDF se generó, se descargó y se guardó en tu Google Drive.");
                 btn.innerHTML = "📄 GENERAR Y GUARDAR EN DRIVE";
                 btn.disabled = false;
                 
-                // Limpieza de pantalla
+                // Limpieza total de la pantalla para el próximo pedido
                 document.getElementById('inputProveedor').value = '';
                 document.getElementById('inputRef').value = '';
                 document.getElementById('cuerpoTabla').innerHTML = '';
@@ -318,7 +326,7 @@
                 document.getElementById('inputProveedor').focus();
             })
             .catch(err => {
-                alert("⚠️ El PDF se descargó en tu PC, pero falló la subida a Drive.");
+                alert("⚠️ El PDF se generó y descargó localmente, pero hubo un error al subirlo a Drive.");
                 btn.innerHTML = "📄 GENERAR Y GUARDAR EN DRIVE";
                 btn.disabled = false;
             });
