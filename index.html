@@ -98,9 +98,9 @@
     <div class="modal fade" id="modalHistorial" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-light">
-                    <h5 class="modal-title fw-bold text-dark">Últimos documentos generados</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title fw-bold text-dark m-0">Últimos documentos guardados</h5>
+                    <button class="btn btn-sm btn-outline-danger fw-bold py-1 px-2" onclick="borrarHistorial()" style="font-size: 0.8rem;">🗑️ Borrar historial</button>
                 </div>
                 <div class="modal-body p-0">
                     <div class="list-group list-group-flush" id="listaHistorial"></div>
@@ -163,6 +163,13 @@
                 });
             }
             new bootstrap.Modal(document.getElementById('modalHistorial')).show();
+        }
+
+        function borrarHistorial() {
+            if (confirm("¿Estás seguro de que querés borrar todo el historial de documentos?")) {
+                localStorage.removeItem('ingesir_historial');
+                abrirHistorial(); // Refresca la ventana para que se vea vacía al instante
+            }
         }
 
         function cargarDesdeHistorial(index) {
@@ -243,7 +250,7 @@
             doc.text(`Número REF: ${refNum}`, 14, 56);
             doc.text(`Fecha: ${fechaActual}`, 130, 56);
             
-            // PROVEEDOR EN NEGRITA Y FUENTE MÁS GRANDE (13pt)
+            // Proveedor en negrita y fuente más grande
             doc.setFont("helvetica", "bold");
             doc.setFontSize(13);
             doc.text(`Proveedor: ${proveedor}`, 14, 65);
