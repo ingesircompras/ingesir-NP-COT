@@ -13,18 +13,27 @@
         .section-title { font-weight: bold; color: #1b365d; border-left: 4px solid #4A6C8C; padding-left: 10px; text-transform: uppercase; letter-spacing: 0.5px;}
         .btn-principal { background-color: #1b365d; color: white; border: none; }
         .btn-principal:hover { background-color: #142845; color: white; }
+        .bloc-notas { background-color: #fff3cd; border: 1px solid #ffecb5; border-radius: 8px; }
     </style>
 </head>
 <body>
 
     <div class="header-bg p-4 mb-4">
-        <div class="container d-flex align-items-center">
-            <div class="bg-white p-2 rounded me-4 shadow-sm d-flex align-items-center justify-content-center" style="width: 140px; height: 70px;">
-                <img src="LOGO.png" alt="INGESIR Logo" style="max-height: 100%; max-width: 100%;">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="bg-white p-2 rounded me-4 shadow-sm d-flex align-items-center justify-content-center" style="width: 140px; height: 70px;">
+                    <img src="LOGO.png" alt="INGESIR Logo" style="max-height: 100%; max-width: 100%;">
+                </div>
+                <div>
+                    <small class="text-uppercase" style="letter-spacing: 1px; color: #cbd5e1;">INGESIR ENVASADORAS S.R.L.</small>
+                    <h3 class="mb-0 fw-bold">Generador de Documentos</h3>
+                </div>
             </div>
+            <!-- Botón para abrir el Bloc de Notas flotante -->
             <div>
-                <small class="text-uppercase" style="letter-spacing: 1px; color: #cbd5e1;">INGESIR ENVASADORAS S.R.L.</small>
-                <h3 class="mb-0 fw-bold">Generador de Documentos</h3>
+                <button class="btn btn-warning fw-bold shadow-sm" onclick="abrirBlocNotas()">
+                    📒 Bloc de Notas (Ayuda Memoria)
+                </button>
             </div>
         </div>
     </div>
@@ -109,11 +118,55 @@
         </div>
     </div>
 
+    <!-- Modal Bloc de Notas General (Ayuda Memoria) -->
+    <div class="modal fade" id="modalBlocNotas" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bloc-notas">
+                <div class="modal-header border-bottom border-warning">
+                    <h5 class="modal-title fw-bold text-dark m-0">📒 Bloc de Notas General (Ayuda Memoria)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-2">Anotá acá lo que te parezca de cualquier proveedor. Esto es solo una libreta personal y **no afecta** en nada a los pedidos ni cotizaciones oficiales.</p>
+                    <textarea class="form-control" id="textoBlocNotas" rows="12" placeholder="Ejemplo:&#10;- Madetec: Preguntar por descuento en caños estructurales.&#10;- Boggio: Anotar stock de rulemanes 6204.&#10;- Argelec: Faltan precintos y cinta aislante..."></textarea>
+                </div>
+                <div class="modal-footer border-top border-warning">
+                    <span class="text-muted small me-auto" id="estadoGuardadoNota">Guardado automáticamente 💾</span>
+                    <button type="button" class="btn btn-dark fw-bold px-4" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         let contadorItems = 1;
 
+        // --- BLOQUE DE NOTAS GENERAL (AYUDA MEMORIA) ---
+        function abrirBlocNotas() {
+            let notasGuardadas = localStorage.getItem('ingesir_bloc_general') || '';
+            document.getElementById('textoBlocNotas').value = notasGuardadas;
+            new bootstrap.Modal(document.getElementById('modalBlocNotas')).show();
+        }
+
+        // Guardado automático en tiempo real mientras escribís en el bloc
+        document.addEventListener("DOMContentLoaded", () => {
+            const textareaNotas = document.getElementById('textoBlocNotas');
+            // Si el elemento existe (cuando se abra el modal o cargue la página)
+            document.body.addEventListener('input', function (e) {
+                if (e.target && e.target.id === 'textoBlocNotas') {
+                    localStorage.setItem('ingesir_bloc_general', e.target.value);
+                    let estado = document.getElementById('estadoGuardadoNota');
+                    if (estado) {
+                        estado.innerText = "¡Guardado! 💾";
+                        setTimeout(() => { estado.innerText = "Guardado automáticamente 💾"; }, 1500);
+                    }
+                }
+            });
+        });
+
+        // --- FUNCIONES DE PEDIDOS Y PDF ---
         function leerInputYAgregar() {
             const desc = document.getElementById('inputDesc').value;
             const cant = document.getElementById('inputCant').value;
@@ -168,7 +221,7 @@
         function borrarHistorial() {
             if (confirm("¿Estás seguro de que querés borrar todo el historial de documentos?")) {
                 localStorage.removeItem('ingesir_historial');
-                abrirHistorial(); // Refresca la ventana para que se vea vacía al instante
+                abrirHistorial();
             }
         }
 
@@ -221,7 +274,6 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // Encabezado corporativo azul
             doc.setFillColor(27, 54, 93);
             doc.rect(0, 0, 210, 35, 'F');
             
@@ -235,13 +287,11 @@
             doc.text("Av. Francia Nº 1771 - Rosario | CUIT: 30-70147850-5", 14, 22);
             doc.text("Tel: 341-2502327 | compras@ingesir.com.ar", 14, 28);
 
-            // Título
             doc.setTextColor(27, 54, 93);
             doc.setFont("helvetica", "bold");
             doc.setFontSize(16);
             doc.text(tipoDoc, 14, 48);
 
-            // Datos generales
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(50, 50, 50);
@@ -250,7 +300,6 @@
             doc.text(`Número REF: ${refNum}`, 14, 56);
             doc.text(`Fecha: ${fechaActual}`, 130, 56);
             
-            // Proveedor en negrita y fuente más grande
             doc.setFont("helvetica", "bold");
             doc.setFontSize(13);
             doc.text(`Proveedor: ${proveedor}`, 14, 65);
@@ -258,7 +307,6 @@
             doc.setDrawColor(200, 200, 200);
             doc.line(14, 71, 196, 71);
 
-            // Tabla Cabecera
             doc.setFillColor(74, 108, 140);
             doc.rect(14, 76, 182, 8, 'F');
             doc.setTextColor(255, 255, 255);
@@ -287,7 +335,6 @@
                 y += 8;
             });
 
-            // Pie de página y Firma institucional por hoja
             const totalPaginas = doc.internal.getNumberOfPages();
             for (let i = 1; i <= totalPaginas; i++) {
                 doc.setPage(i);
@@ -305,16 +352,14 @@
 
             const nombreArchivo = `${tipoDoc}_${refNum}_${proveedor}.pdf`;
 
-            // Descarga local
             doc.save(nombreArchivo);
 
-            // Subida a Drive en segundo plano
             const pdfBase64 = doc.output('datauristring').split(',')[1];
             const btn = document.querySelector('.btn-success');
             btn.innerHTML = "⏳ GUARDANDO EN DRIVE...";
             btn.disabled = true;
 
-            const urlGoogle = 'https://script.google.com/macros/s/AKfycbwuF2Z8mV4fAzIT9rv6peJJynYhNQ3ZNk44Uuc-AjAvHY1MpbJSvmzCxtjdHeyYVZ-5/exec'; // Recordá poner tu URL de Apps Script aquí
+            const urlGoogle = 'TU_URL_DE_APPS_SCRIPT_AQUI'; // Recordá poner tu URL de Apps Script aquí
 
             fetch(urlGoogle, {
                 method: 'POST',
@@ -327,7 +372,6 @@
                 btn.innerHTML = "📄 GENERAR Y GUARDAR EN DRIVE";
                 btn.disabled = false;
                 
-                // Limpieza total de la pantalla para el próximo pedido
                 document.getElementById('inputProveedor').value = '';
                 document.getElementById('inputRef').value = '';
                 document.getElementById('cuerpoTabla').innerHTML = '';
